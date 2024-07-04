@@ -46,6 +46,9 @@ devDependencies:
   '@types/react-dom':
     specifier: ^18.3.0
     version: 18.3.0
+  '@types/react-router-dom':
+    specifier: ^5.3.3
+    version: 5.3.3
   '@typescript-eslint/eslint-plugin':
     specifier: ^7.13.1
     version: 7.14.1(@typescript-eslint/parser@7.14.1)(eslint@8.57.0)(typescript@5.5.2)
@@ -934,6 +937,10 @@ packages:
     resolution: {integrity: sha512-/kYRxGDLWzHOB7q+wtSUQlFrtcdUccpfy+X+9iMBpHK8QLLhx2wIPYuS5DYtR9Wa/YlZAbIovy7qVdB1Aq6Lyw==}
     dev: true
 
+  /@types/history@4.7.11:
+    resolution: {integrity: sha512-qjDJRrmvBMiTx+jyLxvLfJU7UznFuokDv4f3WRuriHKERccVpFU+8XMQUAbDzoiJCsmexxRExQeMwwCdamSKDA==}
+    dev: true
+
   /@types/lodash@4.17.6:
     resolution: {integrity: sha512-OpXEVoCKSS3lQqjx9GGGOapBeuW5eUboYHRlHP9urXPX25IKZ6AnP5ZRxtVf63iieUbsHxLn8NQ5Nlftc6yzAA==}
     dev: false
@@ -966,6 +973,21 @@ packages:
   /@types/react-dom@18.3.0:
     resolution: {integrity: sha512-EhwApuTmMBmXuFOikhQLIBUn6uFg81SwLMOAUgodJF14SOBOCMdU04gDoYi0WOJJHD144TL32z4yDqCW3dnkQg==}
     dependencies:
+      '@types/react': 18.3.3
+    dev: true
+
+  /@types/react-router-dom@5.3.3:
+    resolution: {integrity: sha512-kpqnYK4wcdm5UaWI3fLcELopqLrHgLqNsdpHauzlQktfkHL3npOSwtj1Uz9oKBAzs7lFtVkV8j83voAz2D8fhw==}
+    dependencies:
+      '@types/history': 4.7.11
+      '@types/react': 18.3.3
+      '@types/react-router': 5.1.20
+    dev: true
+
+  /@types/react-router@5.1.20:
+    resolution: {integrity: sha512-jGjmu/ZqS7FjSH6owMcD5qpq19+1RS9DeVRqfl1FeBMxTDQAGwlMWOcs52NDoXaNKyG3d1cYQFMs9rCrb88o9Q==}
+    dependencies:
+      '@types/history': 4.7.11
       '@types/react': 18.3.3
     dev: true
 
