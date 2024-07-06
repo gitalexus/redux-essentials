@@ -22,7 +22,7 @@ const usersSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers(builder) {
-    builder.addCase(fetchUsers.fulfilled, (state, action) => {
+    builder.addCase(fetchUsers.fulfilled, (_, action) => {
       // Immer lets us update state in two ways: either mutating the existing state value, or returning a new result.
       // В этом случае изменение осуществляется за счет возвращения значения, а не мутации конкретных значений
       return action.payload;
