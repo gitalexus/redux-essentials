@@ -1,10 +1,10 @@
 import { FC } from "react";
 import { useAppSelector } from "../../app/hooks";
 import { Link, RouteComponentProps } from "react-router-dom";
-import { RootState } from "../../app/store";
 import PostAuthor from "./PostAuthor";
 import TimeAgo from "./TimeAgo";
 import ReactionButtons from "./ReactionButtons";
+import { selectPostById } from "./postsSlice";
 
 type ParamsType = {
   postId: string;
@@ -15,9 +15,7 @@ type Props = RouteComponentProps<ParamsType>;
 const SinglePostPage: FC<Props> = ({ match }) => {
   const { postId } = match.params;
 
-  const post = useAppSelector((state: RootState) =>
-    state.posts.find((item) => item.id === postId),
-  );
+  const post = useAppSelector((state) => selectPostById(state, postId));
 
   if (!post) {
     return (

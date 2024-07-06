@@ -121,7 +121,47 @@ Data fetching логика в Redux обычно следует предсказ
 2. делается сам асинхронный запрос к данным
 3. в зависимости от результатов запроса диспатчится или **"success"** action содержащая полученные запросом данные, либо **"fail"** action с деталями ошибки. Логика либо обрабатывает полученные данные в случае успеха либо сохраняет результаты ошибки (например для последующего отображения)
 
--
+Непосредственно для запроса доступно четыре состояния (мини стейт машина)
+
+1. запрос не начат
+2. запрос идет
+3. запрос завершился удачно и доступны данные
+4. запрос завершился с ошибкой и доступны данные данные ошибок
+
+**Enum для отслеживания состояния запроса**
+
+```ts
+{
+  // Multiple possible status enum values
+  status: 'idle' | 'loading' | 'succeeded' | 'failed',
+  error: string | null
+}
+```
+
+**Важное замечание по Immer (два способа изменения store)**
+You may have noticed that this time the case reducer isn't using the state variable at all. Instead, we're returning the action.payload directly. Immer lets us update state in two ways: either mutating the existing state value, or returning a new result. If we return a new value, that will replace the existing state completely with whatever we return. (Note that if you want to manually return a new value, it's up to you to write any immutable update logic that might be needed.)
+
+**Мы можем писать переиспользуемые "selector" functions чтобы инкапсулировать чтение значений из redux state**
+
+- селекторы это функции, которые которые получают Redux state, как аргумент и возвращают данные из store (в теории их можно и дорабатывать при этом)
+
+  **Redux использует плагины называемые "middleware" для реализации асинхронной логики**
+
+- стандартный "middleware" называется redux-thunk и он уже включен в пакет RTK
+- Thunk получает dispatch и getState как аргументы, и может использовать их как часть асинхронной логики
+
+  **Можно сделать dispatch дополнительных actions, чтобы отслеживать статус вызовов API**
+
+- типичный паттерн: сделать dispatch "pending" action перед вызовом API, а затем либо "success" содержащий данные, либо "failure" action в случае ошибки
+- Состояние загрузки обычно хранят, как enum вида 'idle' | 'loading' | 'succeeded' | 'failed'
+
+## **Redux-toolkit имеет createAsyncThunk API который делает dispatch этих action для вас**
+
+- createAsyncThunk принимает "payload creator" callback который должен возвращать Promise и генерирует pending/fulfilled/rejected actions автоматически
+- Генерирует action creators, как fetchPosts dispatch эти actions на основании Promise который вы возвращаете
+- Можно слушать эти типы action в createSlice используя поле extraReducers и обновлять state в Reducer
+- Action creators могут быть использованы для автоматического заполнения в ключах объекта ExtraReducers таким образом slice знает какие actions требуется слушать
+- Thunk может возвращать промисы. Для createAsyncThunk. Можно ожидать **await dispatch(someThunk()).unwrap()** для обработки успеха или ошибки запроса на уровне компонента.
 
 ## Выводы по архитектуре и использованным в проекте технологиям
 
@@ -173,6 +213,40 @@ Data fetching логика в Redux обычно следует предсказ
    > :Примечание: по формированию случайных данных сервером: the mock server has been set up to reuse the same random seed each time the page is loaded, so that it will generate the same list of fake users and fake posts. If you want to reset that, delete the 'randomTimestampSeed' value in your browser's Local Storage and reload the page, or you can turn that off by editing src/api/server.js and setting useSeededRNG to false.
 
    7.1 Объяснение общей теории по async middleware и итоговая рекомендация использовать thunk
+   7.2 Переделываем post selector с возвращения просто массива на возращение объекта с массивом posts и статусами его сотояния (загрузка, получен удачно, ошибка). Используем подход создания селекторов в slice файле, тогда useSelect позволит перенести логику по получению данных из компонентов в одно место slice и менять ее в случае изменения форматов данных именно там (что упростит модификации)\
+
+   > :warning: следует помнить, что написание селекторов это не необходимость их можно и не использовать (без необходимости), а так же можно ввести дополнительные абстракции для мемоизации запросов к селектам, что будет рассмотрено позже
+
+   7.3 Добавляем статусы (состояний) для данных (type Status = 'idle' | 'loading' | 'succeeded' | 'failed';)
+   7.3 Создаем thunk с AJAX запросом для получения posts (fetchPosts = createAsyncThunk ... )
+   https://redux.js.org/tutorials/essentials/part-5-async-logic#fetching-data-with-createasyncthunk
+   7.4 Далее важная часть создаем extraReducers которые обрабатывают (pending, fulfilled, rejected) состояния-экшены, которые формируются в процессе работы thunk-функции. (на базе этого меняем статусы (idle, pending, succeeded, failed), а также данные и значение error после чего эти изменения управляют отрисовкой компонента)
+
+   ```js
+   extraReducers(builder) {
+    builder
+      .addCase(fetchPosts.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.posts = state.posts.concat(action.payload);
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message || null;
+      });
+   },
+   ```
+
+   7.5 Внесем изменения в компоненты для работы с новыми статусами
+   7.6 Добавим загрузку пользователей внеся изменненения в userSlice в этот раз будет отслеживать только состояние fulfilled
+
+   8 Отправка данных с помощью Thunk
+   8.1 Поменяем логику работы создания новых сообщений. До этого без сервера id генерировался в секции prepare, но теперь
+   в большинстве случаев если для хранения данных задействован сервер, то он же и генерирует id и возвращает его вместе со всем объектом.
+   8.2 Используем unwrap для получения результата промиса асинхронного промиса, который удобно использовать для обработки ошибок
+   8.3 Протестировать ошибку можно написав в поле content только слов error. В этом случае fake-сервер сгенерирует failed response
 
 8. ...
 
