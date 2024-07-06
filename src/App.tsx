@@ -11,9 +11,11 @@ import AddPostForm from "./features/posts/AddPostForm";
 import SinglePostPage from "./features/posts/SinglePostPage";
 import EditPostForm from "./features/posts/EditPostForm";
 
+const base = import.meta.env.BASE_URL;
+
 function App() {
   return (
-    <Router>
+    <Router basename={base}>
       <Navbar />
       <div className="App">
         <Switch>

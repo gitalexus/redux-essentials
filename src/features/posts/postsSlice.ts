@@ -41,7 +41,7 @@ interface ThunkConfig {}
  */
 export const fetchPosts: AsyncThunk<Post[], void, ThunkConfig> =
   createAsyncThunk("post/fetchPosts", async () => {
-    const response = await client.get("fakeApi/posts");
+    const response = await client.get("/fakeApi/posts");
     return response.data;
   });
 
